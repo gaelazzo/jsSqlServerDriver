@@ -1,0 +1,47 @@
+{
+  "name": "jsSqlServerDriver",
+  "version": "1.0.1",
+  "description": "Javascrit Driver for Microsoft Sql Server Database",
+  "main": "src/jsSqlServerDriver.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "dependencies": {
+    "lodash": "~3.1.0",
+    "jsDataQuery": "git://github.com/gaelazzo/jsDataQuery.git",
+    "JQDeferred": "^2.1.0",
+    "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git",
+    "edge": "latest",
+    "edge-sql": "git://github.com/gaelazzo/edge-sql"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-contrib-yuidoc": "^0.7.0",
+
+    "jasmine-core": "^2.2.0",
+    "jasmine-node": "2.0.0-beta4",
+    "grunt-jasmine-node-new": "^0.3.2",
+    "jasmine-collection-matchers":"*",
+
+    "load-grunt-tasks": "^3.1.0",
+    "time-grunt": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gaelazzo/jsSqlServerDriver"
+  },
+  "keywords": [
+    "query",
+    "expression",
+    "javascript",
+    "sql",
+    "compiler"
+  ],
+  "author": "Gaetano Lazzo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gaelazzo/jsSqlServerDriver/issues"
+  },
+  "homepage": "https://github.com/gaelazzo/jsSqlServerDriver#readme"
+}
