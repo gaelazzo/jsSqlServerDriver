@@ -18,7 +18,7 @@ CREATE TABLE [dbo].[customer](
 
 GO
 declare @i int
-set @i=0
+set @i=1
 select RAND(100)
 while (@i<500) BEGIN
 insert into customer(idcustomer,name,age,birth,surname,stamp,random,curr) values(
@@ -55,7 +55,7 @@ CREATE TABLE [dbo].[seller](
 GO
 
 declare @i int
-set @i=0
+set @i=1
 select RAND(1000)
 while (@i<60) BEGIN
 insert into seller (idseller,name,age,birth,surname,stamp,random,curr,cf) values(

@@ -57,8 +57,8 @@ function simpleObjectify(colNames, rows) {
  * transforms row data into plain objects
  * @method simpleObjectifier
  * @private
- * @param {string[]} colNames
- * @param {object[]}  row
+ * @param {Array[string]} colNames
+ * @param {Array[DataRow]}  row
  * @returns {object}
  */
 function simpleObjectifier(colNames, row) {
@@ -74,8 +74,8 @@ function simpleObjectifier(colNames, row) {
  * Extract an array of column names from a 'meta' coming from sql-node
  * @method getColumnNames
  * @private
- * @param meta
- * @returns {Array}
+ * @param {object} meta
+ * @returns {Array[string]}
  */
 function getColumnNames(meta) {
     var extra,
@@ -699,8 +699,8 @@ Connection.prototype.getDeleteCommand = function (options) {
  * Get the string representing an insert command
  * @method getInsertCommand
  * @param {string} table
- * @param {Array} columns
- * @param {Array} values
+ * @param {string[]} columns
+ * @param {Object[]} values
  * @returns {string}
  */
 Connection.prototype.getInsertCommand = function (table, columns, values) {
@@ -717,8 +717,8 @@ Connection.prototype.getInsertCommand = function (table, columns, values) {
  * @param {object} options
  * @param {string} options.table
  * @param {sqlFun} options.filter
- * @param {Array} options.columns
- * @param {Array} options.values
+ * @param {string[]} options.columns
+ * @param {Object[]} options.values
  * @param {object} [options.environment]
  * @returns {string}
  */
@@ -748,9 +748,9 @@ Connection.prototype.getUpdateCommand = function (options) {
  * @method callSPWithNamedParams
  * @param {object} options
  * @param {string} options.spName
- * @param {Array} options.paramList
+ * @param {Object[]} options.paramList
  * @param {boolean} [options.raw=false]
- * @returns {Array}
+ * @returns {Tables[] [, Object]}
  */
 Connection.prototype.callSPWithNamedParams = function (options) {
     var spDef = Deferred(),
@@ -810,12 +810,35 @@ Connection.prototype.callSPWithNamedParams = function (options) {
     return spDef.promise();
 };
 
+
+/**
+ * @class TableDescriptor
+ * The structure of a table is described with a TableDescriptor.
+ * The definition of this structure must match that of dbDescriptor module
+ * A TableDescriptor is an object having those properties:
+ * {string} xtype:      T for  tables, V for Views
+ * {string} name:       table or view name
+ * {ColumnDescriptor[]} columns
+ *
+ */
+
+/**
+ * @class ColumnDescriptor
+ * An object describing a column of a table. It is required to have the following fields:
+ *  {string} name        - field name
+ *  {string} type        - db type
+ *  {number} max_length  - size of field in bytes
+ *  {number} precision   - n. of integer digits managed
+ *  {number} scale       - n. of decimal digits
+ *  {boolean} is_nullable - true if it can be null
+ *  {boolean} pk          - true if it is primary key
+ */
+
 /**
  * Gets information about a db table
  * @method tableDescriptor
  * @param {string} tableName
- * @returns {Array}
- * The result has columns: DBO, name, type, len, precision, scale, is_nullable, pk
+ * @returns {TableDescriptor}
  */
 Connection.prototype.tableDescriptor = function (tableName) {
     var res = Deferred(),
@@ -860,7 +883,7 @@ Connection.prototype.tableDescriptor = function (tableName) {
 /**
  * get a sql command given by a sequence of specified sql commands
  * @method appendCommands
- * @param cmd
+ * @param {string} cmd
  * @returns {*}
  */
 Connection.prototype.appendCommands = function (cmd) {
@@ -869,7 +892,9 @@ Connection.prototype.appendCommands = function (cmd) {
 
 /**
  * Returns a command that should return a number if last write operation did not have success
+ * @private
  * @method giveErrorNumberDataWasNotWritten
+ * @param {number} errNumber
  * @return string
  */
 Connection.prototype.giveErrorNumberDataWasNotWritten = function (errNumber) {
@@ -878,7 +903,9 @@ Connection.prototype.giveErrorNumberDataWasNotWritten = function (errNumber) {
 
 /**
  * Returns a command that should return a constant number
+ * @private
  * @method giveConstant
+ * @param {object} c
  * @return string
  */
 Connection.prototype.giveConstant = function (c) {

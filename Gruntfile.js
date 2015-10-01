@@ -25,6 +25,7 @@ module.exports = function (grunt) {
 
             yuidoc: {
                 compile: {
+                    linkNatives: "true",
                     name: '<%= pkg.name %>',
                     description: '<%= pkg.description %>',
                     version: '<%= pkg.version %>',
