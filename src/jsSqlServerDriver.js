@@ -1,5 +1,5 @@
 'use strict';
-
+/*globals Deferred reject resolve promise */
 
 var Deferred = require("JQDeferred");
 var _ = require('lodash');
@@ -57,8 +57,8 @@ function simpleObjectify(colNames, rows) {
  * transforms row data into plain objects
  * @method simpleObjectifier
  * @private
- * @param {Array[string]} colNames
- * @param {Array[DataRow]}  row
+ * @param {string[]} colNames
+ * @param {object[]}  row
  * @returns {object}
  */
 function simpleObjectifier(colNames, row) {
@@ -67,43 +67,6 @@ function simpleObjectifier(colNames, row) {
         obj[value] = row[index];
     });
     return obj;
-}
-
-
-/**
- * Extract an array of column names from a 'meta' coming from sql-node
- * @method getColumnNames
- * @private
- * @param {object} meta
- * @returns {Array[string]}
- */
-function getColumnNames(meta) {
-    var extra,
-        col,
-        candidate,
-        idx,
-        name,
-        names = {},
-        colNames = [],
-        fun;
-    for (idx in meta) {
-        col = meta[idx];
-        name = col.name;
-        if (name !== '' && names[name] === undefined) {
-            names[name] = idx;
-            colNames[idx] = name;
-        } else {
-            extra = 0;
-            candidate = 'Column' + idx;
-            while (names[candidate] !== undefined) {
-                candidate = 'Column' + idx + '_' + extra;
-                extra += 1;
-            }
-            names[candidate] = idx;
-            colNames[idx] = candidate;
-        }
-    }
-    return colNames;
 }
 
 /*jslint forin: false */
@@ -211,12 +174,11 @@ Connection.prototype.useSchema = function (schema) {
 };
 
 /**
- * Destroy this connection and closes the underlying sqlConnection
+ * Destroy this connection and closes the underlying connection
  * @method destroy
  */
 Connection.prototype.destroy = function () {
     this.close();
-    this.sqlConn = null;
 };
 
 /**
@@ -344,7 +306,7 @@ Connection.prototype.queryBatch = function (query, raw) {
         def = Deferred();
     edgeQuery({}, function (error, result) {
         if (error) {
-            def.reject(error);
+            def.reject(error+' running '+query);
             return;
         }
         var i;
@@ -454,14 +416,14 @@ Connection.prototype.queryLines = function (query, raw) {
     edgeQuery({}, function (error, result) {
         var i;
         if (error) {
-            def.reject(error);
+            def.reject(error +' running '+query);
             return;
         }
         if (result.length === 0) {
             def.resolve();
             return;
         }
-        def.reject('shouldnt reach here');
+        def.reject('shouldnt reach here - running '+query);
     });
     return def.promise();
 };
@@ -511,7 +473,7 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
     edgeQuery({}, function (error, result) {
         var i;
         if (error) {
-            def.reject(error);
+            def.reject(error+' running '+query);
             return;
         }
         def.resolve();
