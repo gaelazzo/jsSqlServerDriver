@@ -1,6 +1,9 @@
-'use strict';
-/*globals Deferred reject resolve promise */
 
+'use strict';
+/**
+ * @property Deferred
+ * @type {Deferred}
+ */
 var Deferred = require("JQDeferred");
 var _ = require('lodash');
 var formatter = require('jsSqlServerFormatter');
@@ -299,7 +302,7 @@ Connection.prototype.open = function () {
  * @method queryBatch
  * @param {string} query
  * @param {boolean} [raw] if true, data are left in raw state and will be objectified by the client
- * @returns {*}  a sequence of {[array of plain objects]} or {meta:[column names],rows:[arrays of raw data]}
+ * @returns {Deferred}  a sequence of {[array of plain objects]} or {meta:[column names],rows:[arrays of raw data]}
  */
 Connection.prototype.queryBatch = function (query, raw) {
     var edgeQuery = edge.func(this.sqlCompiler, _.extend({source: query}, this.getDbConn())),
@@ -701,7 +704,7 @@ Connection.prototype.getUpdateCommand = function (options) {
 
 
 /**
- * call SP with a list of parameters each of which is an object having:
+ * evaluates the sql command to call aSP with a list of parameters each of which is an object having:
  *  value,
  *  optional 'sqltype' name compatible with the used db, necessary if is an output parameter
  *  optional out: true if it is an output parameter
@@ -711,22 +714,20 @@ Connection.prototype.getUpdateCommand = function (options) {
  * @param {object} options
  * @param {string} options.spName
  * @param {Object[]} options.paramList
- * @param {boolean} [options.raw=false]
- * @returns {Tables[] [, Object]}
+ * @returns {String}
  */
-Connection.prototype.callSPWithNamedParams = function (options) {
-    var spDef = Deferred(),
-        i = 0,
-        names = {},
-        cmd = '',
-        outList = _.map(
-            _.where(options.paramList, {out: true}),
-            function (p) {
-                names[p.name] = '@@par' + i;
-                i += 1;
-                return names[p.name] + ' ' + p.sqltype;
-            }
-        ).join(',');
+Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
+ var i = 0,
+     names = {},
+     cmd = '',
+     outList = _.map(
+         _.where(options.paramList, {out: true}),
+         function (p) {
+             names[p.name] = '@@par' + i;
+             i += 1;
+             return names[p.name] + ' ' + p.sqltype;
+         }
+     ).join(',');
     if (outList) {
         cmd = 'DECLARE ' + outList + ';';
     }
@@ -750,12 +751,34 @@ Connection.prototype.callSPWithNamedParams = function (options) {
                 }
             ).join(',');
     }
+    return cmd;
+}
+
+/**
+ * call SP with a list of parameters each of which is an object having:
+ *  value,
+ *  optional 'sqltype' name compatible with the used db, necessary if is an output parameter
+ *  optional out: true if it is an output parameter
+ *  The SP eventually returns a collection of tables and at the end an object with a property for each output parameter
+ *  of the SP
+ * @method callSPWithNamedParams
+ * @param {object} options
+ * @param {string} options.spName
+ * @param {Object[]} options.paramList
+ * @param {boolean} [options.raw=false]
+ * @returns {Tables[] [, Object]}
+ */
+Connection.prototype.callSPWithNamedParams = function (options) {
+    var spDef = Deferred(),
+        cmd = this.getSqlCallSPWithNamedParams(options);
+
+    //noinspection JSUnresolvedFunction
     this.queryBatch(cmd, options.raw)
         .progress(function (result) {
             spDef.notify(result);
         })
         .done(function (result) {
-            if (outList) {
+            if (_.any(options.paramList,{out:true})) {
                 //An object is needed for output row
                 var allVar = options.raw ? simpleObjectify(result[0].meta, result[0].rows) : result[0];
                 _.each(_.keys(allVar), function (k) {
@@ -845,7 +868,7 @@ Connection.prototype.tableDescriptor = function (tableName) {
 /**
  * get a sql command given by a sequence of specified sql commands
  * @method appendCommands
- * @param {string} cmd
+ * @param {String[]} cmd
  * @returns {*}
  */
 Connection.prototype.appendCommands = function (cmd) {
@@ -881,6 +904,7 @@ Connection.prototype.giveConstant = function (c) {
  * @return {sqlFormatter}
  */
 Connection.prototype.getFormatter = function () {
+    //noinspection JSValidateTypes
     return formatter;
 };
 
@@ -892,6 +916,7 @@ Connection.prototype.getFormatter = function () {
  */
 Connection.prototype.run = function(script){
     var os = require('os');
+    //noinspection JSUnresolvedVariable
     var lines = script.split(os.EOL);
     var blocks = [];
     var curr= '';
@@ -907,6 +932,7 @@ Connection.prototype.run = function(script){
             continue;
         }
         if(!first){
+            //noinspection JSUnresolvedVariable
             curr+= os.EOL;
         }
         curr+= s;

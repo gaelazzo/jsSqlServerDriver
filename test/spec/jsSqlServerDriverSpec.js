@@ -1,6 +1,5 @@
-/*globals describe,beforeEach,it,expect,jasmine,spyOn,afterEach,xit*/
+/*globals describe,beforeEach,it,expect,jasmine,spyOn,afterEach,xit,progress*/
 'use strict';
-var Deferred = require("JQDeferred");
 var $dq = require('jsDataQuery');
 var _ = require('lodash');
 var fs = require("fs");
