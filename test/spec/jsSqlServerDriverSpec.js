@@ -1,4 +1,5 @@
 /*globals describe,beforeEach,it,expect,jasmine,spyOn,afterEach,xit,progress*/
+
 'use strict';
 var $dq = require('jsDataQuery');
 var _ = require('lodash');

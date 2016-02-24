@@ -4,7 +4,7 @@
  * @property Deferred
  * @type {Deferred}
  */
-var Deferred = require("JQDeferred");
+var Deferred = require("jsDeferred");
 var _ = require('lodash');
 var formatter = require('jsSqlServerFormatter');
 var edge = require('edge');

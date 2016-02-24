@@ -9,8 +9,8 @@
   "dependencies": {
     "lodash": "~3.1.0",
     "jsDataQuery": "git://github.com/gaelazzo/jsDataQuery.git",
-    "JQDeferred": "^2.1.0",
     "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git",
+    "jsDeferred": "git://github.com/gaelazzo/jsDeferred.git",
     "edge": "latest",
     "edge-sql": "git://github.com/gaelazzo/edge-sql"
   },
