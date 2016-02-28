@@ -56,6 +56,7 @@ function simpleObjectify(colNames, rows) {
     return result;
 }
 
+
 /**
  * transforms row data into plain objects
  * @method simpleObjectifier
@@ -73,6 +74,38 @@ function simpleObjectifier(colNames, row) {
 }
 
 /*jslint forin: false */
+
+
+/**
+ * @type SqlParameter
+ */
+function SqlParameter(){
+
+    /**
+     * Optional parameter name
+     * @type {string|undefined}
+     */
+    this.name=null;
+
+    /**
+     * Parameter value
+     * @type {object|undefined}
+     */
+    this.value=null;
+
+    /**
+     * Sql type declaration for output parameters
+     * @type {string|undefined}
+     */
+    this.sqltype=undefined;
+
+    /**
+     * Output flag , 'S' when it is output parameter
+     * @type {'S'|'N'|undefined}
+     */
+    this.out = undefined;
+}
+
 
 /**
  * Provides function to interact with a Sql Server database
@@ -713,7 +746,7 @@ Connection.prototype.getUpdateCommand = function (options) {
  * @method callSPWithNamedParams
  * @param {object} options
  * @param {string} options.spName
- * @param {Object[]} options.paramList
+ * @param {SqlParameter[]} options.paramList
  * @returns {String}
  */
 Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
@@ -764,7 +797,7 @@ Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
  * @method callSPWithNamedParams
  * @param {object} options
  * @param {string} options.spName
- * @param {Object[]} options.paramList
+ * @param {SqlParameter[]} options.paramList
  * @param {boolean} [options.raw=false]
  * @returns {Tables[] [, Object]}
  */
