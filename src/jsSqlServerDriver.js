@@ -100,8 +100,8 @@ function SqlParameter(){
     this.sqltype=undefined;
 
     /**
-     * Output flag , 'S' when it is output parameter
-     * @type {'S'|'N'|undefined}
+     * Output flag , true when it is output parameter
+     * @type {boolean|undefined}
      */
     this.out = undefined;
 }
