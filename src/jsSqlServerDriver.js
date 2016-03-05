@@ -747,6 +747,7 @@ Connection.prototype.getUpdateCommand = function (options) {
  * @param {object} options
  * @param {string} options.spName
  * @param {SqlParameter[]} options.paramList
+ * @param {boolean} [options.skipSelect]    when true, the select of output parameter is omitted
  * @returns {String}
  */
 Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
@@ -775,7 +776,7 @@ Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
             return formatter.quote(p.value);
         }).join(',');
 
-    if (outList) {
+    if (outList && options.skipSelect!==true) {
         cmd += ';SELECT ' +
             _.map(
                 _.where(options.paramList, {out: true}),
