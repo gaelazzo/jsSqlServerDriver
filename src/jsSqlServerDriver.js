@@ -298,34 +298,35 @@ Connection.prototype.open = function () {
     var connDef = Deferred(),
         that = this;
     if (this.isOpen) {
-        //console.log('Connection.open returning resolved promise');
+        console.log('Connection.open returning resolved promise');
         return connDef.resolve(this).promise();
     }
     this.edgeOpen()
         .done(function () {
             that.isOpen = true;
-            //console.log('Connection.open done');
+            console.log('Connection.open done');
             if (that.schema === that.defaultSchema) {
+                console.log('Schema is good');
                 connDef.resolve(that);
                 return;
             }
-            //console.log('Connection.open going');
+            console.log('Connection.open going');
             that.useSchema(that.schema)
                 .done(function () {
-                    //console.log('Connection.open useSchema done');
+                    console.log('Connection.open useSchema done');
                     connDef.resolve(that);
                 })
                 .fail(function (err) {
-                    //console.log('Connection.open useSchema fail');
+                    console.log('Connection.open useSchema fail');
                     that.close();
                     connDef.reject(err);
                 });
         })
         .fail(function (err) {
-            //console.log('Connection.open fail',err);
+            console.log('Connection.open fail',err);
             connDef.reject(err);
         });
-    //console.log('Connection.open returning a promise');
+    console.log('Connection.open returning a promise');
 
     return connDef.promise();
 };
@@ -338,7 +339,7 @@ Connection.prototype.open = function () {
  * @returns {Deferred}  a sequence of {[array of plain objects]} or {meta:[column names],rows:[arrays of raw data]}
  */
 Connection.prototype.queryBatch = function (query, raw) {
-    var edgeQuery = edge.func(this.sqlCompiler, _.extend({source: query}, this.getDbConn())),
+    var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query}, this.getDbConn())),
         def = Deferred();
     edgeQuery({}, function (error, result) {
         if (error) {
@@ -369,7 +370,8 @@ Connection.prototype.queryBatch = function (query, raw) {
  * @returns {*}
  */
 Connection.prototype.edgeOpen = function () {
-    var def = Deferred(),
+    console.log('edgeOpen');
+    var def = new Deferred(),
         that = this,
         edgeOpenInternal = edge.func(this.sqlCompiler,
             {
@@ -377,19 +379,25 @@ Connection.prototype.edgeOpen = function () {
                 connectionString: this.adoString,
                 cmd: 'open'
             });
+    console.log('edgeOpen-2');
     edgeOpenInternal({}, function (error, result) {
+        console.log('inside edgeOpenInternal');
         var i;
         if (error) {
+            console.log('error:'+error);
             def.reject(error);
             return;
         }
         if (result) {
+            console.log('result:'+result);
             that.edgeHandler = result;
             def.resolve(that);
             return;
         }
+        console.log('shouldnt reach here');
         def.reject('shouldnt reach here');
     });
+    console.log('edgeOpen3');
     return def.promise();
 };
 
@@ -447,7 +455,7 @@ Connection.prototype.queryLines = function (query, raw) {
             }
         },
         edgeQuery = edge.func(this.sqlCompiler,
-            _.extend({source: query, callback: callback, packetSize: 1},
+            _.assign({source: query, callback: callback, packetSize: 1},
                 this.getDbConn()));
     edgeQuery({}, function (error, result) {
         var i;
@@ -504,7 +512,7 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
                 }
             }
         },
-        edgeQuery = edge.func(this.sqlCompiler, _.extend({source: query, callback: callback, packetSize: packetSize},
+        edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, callback: callback, packetSize: packetSize},
             this.getDbConn()));
     edgeQuery({}, function (error, result) {
         var i;
@@ -525,7 +533,7 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
  * @returns {*}
  */
 Connection.prototype.updateBatch = function (query) {
-    var edgeQuery = edge.func(this.sqlCompiler, _.extend({source: query, cmd: 'nonquery'},
+    var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, cmd: 'nonquery'},
             this.getDbConn())),
         def = Deferred();
     edgeQuery({}, function (error, result) {

@@ -64,11 +64,10 @@ describe('sqlServerDriver ', function () {
 
     beforeEach(function (done) {
         sqlConn = getConnection('good');
-        sqlConn.open().
-            done(function () {
-                done();
-            });
-    },10000);
+        sqlConn.open().done(function () {
+            done();
+        });
+    }, 10000);
 
     afterEach(function () {
         if (sqlConn) {
@@ -79,17 +78,17 @@ describe('sqlServerDriver ', function () {
 
 
     describe('setup dataBase', function () {
-        it ('should run the setup script', function(done){
+        it('should run the setup script', function (done) {
             sqlConn.run(fs.readFileSync('test/setup.sql').toString())
                 .done(function () {
                     expect(true).toBeTruthy();
                     done();
                 })
-                .fail(function(res){
+                .fail(function (res) {
                     expect(res).toBeUndefined();
                     done();
                 });
-        },30000);
+        }, 30000);
 
     });
 
@@ -141,13 +140,15 @@ describe('sqlServerDriver ', function () {
 
         it('open with bad credential should return an error', function (done) {
             var badSqlConn = getConnection('bad');
-            //console.log(JSON.stringify(sqlConn));
+            console.log('open with bad credential should return an error');
             badSqlConn.open()
                 .done(function () {
+                    console.log('DONE method');
                     expect(true).toBe(false);
                     done();
                 })
                 .fail(function (errMess) {
+                    console.log('FAIL method');
                     expect(errMess).toBeDefined();
                     done();
                 });
@@ -380,14 +381,14 @@ describe('sqlServerDriver ', function () {
          */
         it('callSPWithNamedParams should have success', function (done) {
             sqlConn.callSPWithNamedParams({
-                spName: 'testSP2',
-                paramList: [
-                    {name: 'esercizio', value: 2013},
-                    {name: 'meseinizio', value: 1},
-                    {name: 'mess', value: 'ciao JS'},
-                    {name: 'defparam', value: 10}
-                ]
-            })
+                    spName: 'testSP2',
+                    paramList: [
+                        {name: 'esercizio', value: 2013},
+                        {name: 'meseinizio', value: 1},
+                        {name: 'mess', value: 'ciao JS'},
+                        {name: 'defparam', value: 10}
+                    ]
+                })
                 .progress(function (x) {
                     expect(x).toBeUndefined();
                 })
@@ -414,14 +415,14 @@ describe('sqlServerDriver ', function () {
 
         it('callSPWithNamedParams should have success - param order does not matter', function (done) {
             sqlConn.callSPWithNamedParams({
-                spName: 'testSP2',
-                paramList: [
-                    {name: 'defparam', value: 10},
-                    {name: 'mess', value: 'ciao JS'},
-                    {name: 'esercizio', value: 2013},
-                    {name: 'meseinizio', value: 1}
-                ]
-            })
+                    spName: 'testSP2',
+                    paramList: [
+                        {name: 'defparam', value: 10},
+                        {name: 'mess', value: 'ciao JS'},
+                        {name: 'esercizio', value: 2013},
+                        {name: 'meseinizio', value: 1}
+                    ]
+                })
                 .progress(function (x) {
                     expect(x).toBeUndefined();
                 })
@@ -461,15 +462,15 @@ describe('sqlServerDriver ', function () {
         it('callSPWithNamedParams with output params should have success', function (done) {
             var table;
             sqlConn.callSPWithNamedParams({
-                spName: 'testSP1',
-                paramList: [
-                    {name: 'esercizio', value: 2013},
-                    {name: 'meseinizio', value: 2},
-                    {name: 'mesefine', out: true, sqltype: 'int'},
-                    {name: 'mess', value: 'ciao JS'},
-                    {name: 'defparam', value: 10}
-                ]
-            })
+                    spName: 'testSP1',
+                    paramList: [
+                        {name: 'esercizio', value: 2013},
+                        {name: 'meseinizio', value: 2},
+                        {name: 'mesefine', out: true, sqltype: 'int'},
+                        {name: 'mess', value: 'ciao JS'},
+                        {name: 'defparam', value: 10}
+                    ]
+                })
                 .progress(function (res) {
                     table = res;
                     expect(_.isArray(res)).toBeTruthy();
@@ -645,16 +646,16 @@ describe('sqlServerDriver ', function () {
 
 
     describe('clear dataBase', function () {
-        it ('should run the destroy script', function(done){
+        it('should run the destroy script', function (done) {
             sqlConn.run(fs.readFileSync('test/destroy.sql').toString())
                 .done(function () {
                     expect(true).toBeTruthy();
                     done();
                 })
-                .fail(function(res){
+                .fail(function (res) {
                     expect(res).toBeUndefined();
                     done();
                 });
-        },30000);
+        }, 30000);
     });
 });
