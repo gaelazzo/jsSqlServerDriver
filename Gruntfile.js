@@ -49,13 +49,14 @@ module.exports = function (grunt) {
                     jUnit: {
                         report: true,
                         savePath: "./build/reports/jasmine/",
-                        useDotNotation: true,
+                        useDotNotation: false,
                         consolidate: true
                     }
                 },
                 single: {
                     options: {
                         specFolders: ['./test/spec/'],
+                        useDotNotation: false,
                         autotest: false
                     }
                 },

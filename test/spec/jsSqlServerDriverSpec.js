@@ -67,7 +67,7 @@ describe('sqlServerDriver ', function () {
         sqlConn.open().done(function () {
             done();
         });
-    }, 10000);
+    }, 30000);
 
     afterEach(function () {
         if (sqlConn) {
@@ -123,7 +123,6 @@ describe('sqlServerDriver ', function () {
 
 
         it('open should return a deferred', function (done) {
-            //console.log(JSON.stringify(sqlConn));
             sqlConn.open()
                 .done(function () {
                     expect(true).toBe(true);
@@ -138,27 +137,11 @@ describe('sqlServerDriver ', function () {
 
         });
 
-        it('open with bad credential should return an error', function (done) {
-            var badSqlConn = getConnection('bad');
-            console.log('open with bad credential should return an error');
-            badSqlConn.open()
-                .done(function () {
-                    console.log('DONE method');
-                    expect(true).toBe(false);
-                    done();
-                })
-                .fail(function (errMess) {
-                    console.log('FAIL method');
-                    expect(errMess).toBeDefined();
-                    done();
-                });
 
-        });
 
 
         it('open with  right credential should return a success', function (done) {
             var goodSqlConn = getConnection('good');
-            //console.log(JSON.stringify(sqlConn));
             goodSqlConn.open()
                 .done(function () {
                     expect(true).toBe(true);
@@ -171,6 +154,21 @@ describe('sqlServerDriver ', function () {
                 });
 
         });
+
+        it('open with bad credential should return an error', function (done) {
+            var badSqlConn = getConnection('bad');
+            badSqlConn.open()
+                .done(function (res) {
+                    expect(res).toBe(undefined);
+                    expect(true).toBe(false);
+                    done();
+                })
+                .fail(function (errMess) {
+                    expect(errMess).toBeDefined();
+                    done();
+                });
+
+        }, 30000);
     });
 
     describe('various', function () {
@@ -235,7 +233,7 @@ describe('sqlServerDriver ', function () {
                     done();
                 });
         });
-    });
+    },30000);
 
 
     describe('transactions', function () {
@@ -379,7 +377,7 @@ describe('sqlServerDriver ', function () {
          replace(@mess,'a','z') as newmess,   @defparam*2 as newparam
          END
          */
-        it('callSPWithNamedParams should have success', function (done) {
+        xit('callSPWithNamedParams should have success', function (done) {
             sqlConn.callSPWithNamedParams({
                     spName: 'testSP2',
                     paramList: [
@@ -413,7 +411,7 @@ describe('sqlServerDriver ', function () {
                 });
         });
 
-        it('callSPWithNamedParams should have success - param order does not matter', function (done) {
+        xit('callSPWithNamedParams should have success - param order does not matter', function (done) {
             sqlConn.callSPWithNamedParams({
                     spName: 'testSP2',
                     paramList: [
@@ -459,7 +457,7 @@ describe('sqlServerDriver ', function () {
          END
 
          */
-        it('callSPWithNamedParams with output params should have success', function (done) {
+        xit('callSPWithNamedParams with output params should have success', function (done) {
             var table;
             sqlConn.callSPWithNamedParams({
                     spName: 'testSP1',

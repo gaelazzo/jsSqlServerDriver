@@ -4,7 +4,7 @@
  * @property Deferred
  * @type {Deferred}
  */
-var Deferred = require("jsDeferred");
+var Deferred = require("JQDeferred");
 var _ = require('lodash');
 var formatter = require('jsSqlServerFormatter');
 var edge = require('edge');
@@ -183,7 +183,6 @@ function Connection(options) {
             //"WorkStation ID =" + Environment.MachineName.ToUpper() +
         "Pooling=false;" +
         "Connection Timeout=600;";
-    //console.log(this.adoString);
 }
 
 Connection.prototype = {
@@ -271,18 +270,15 @@ Connection.prototype.getDbConn = function () {
  * @returns {boolean}
  */
 Connection.prototype.checkLogin = function (login, password) {
-    //console.log('checkLogin called with '+login+' and '+ password);
     var opt = _.assign({}, this.opt, {user: login, pwd: password}),
         def = Deferred(),
         testConn = new Connection(opt);
     testConn.open()
         .done(function (res) {
-            //console.log('testConn.open done');
             def.resolve(true);
             testConn.destroy();
         })
         .fail(function (res) {
-            //console.log('testConn.open fail');
             def.resolve(false);
         });
     return def.promise();
@@ -298,36 +294,27 @@ Connection.prototype.open = function () {
     var connDef = Deferred(),
         that = this;
     if (this.isOpen) {
-        console.log('Connection.open returning resolved promise');
         return connDef.resolve(this).promise();
     }
     this.edgeOpen()
         .done(function () {
             that.isOpen = true;
-            console.log('Connection.open done');
             if (that.schema === that.defaultSchema) {
-                console.log('Schema is good');
                 connDef.resolve(that);
                 return;
             }
-            console.log('Connection.open going');
             that.useSchema(that.schema)
                 .done(function () {
-                    console.log('Connection.open useSchema done');
                     connDef.resolve(that);
                 })
                 .fail(function (err) {
-                    console.log('Connection.open useSchema fail');
                     that.close();
                     connDef.reject(err);
                 });
         })
         .fail(function (err) {
-            console.log('Connection.open fail',err);
             connDef.reject(err);
         });
-    console.log('Connection.open returning a promise');
-
     return connDef.promise();
 };
 
@@ -370,8 +357,7 @@ Connection.prototype.queryBatch = function (query, raw) {
  * @returns {*}
  */
 Connection.prototype.edgeOpen = function () {
-    console.log('edgeOpen');
-    var def = new Deferred(),
+    var def = Deferred(),
         that = this,
         edgeOpenInternal = edge.func(this.sqlCompiler,
             {
@@ -379,25 +365,19 @@ Connection.prototype.edgeOpen = function () {
                 connectionString: this.adoString,
                 cmd: 'open'
             });
-    console.log('edgeOpen-2');
     edgeOpenInternal({}, function (error, result) {
-        console.log('inside edgeOpenInternal');
         var i;
         if (error) {
-            console.log('error:'+error);
-            def.reject(error);
+            def.reject(null);
             return;
         }
         if (result) {
-            console.log('result:'+result);
             that.edgeHandler = result;
             def.resolve(that);
             return;
         }
-        console.log('shouldnt reach here');
         def.reject('shouldnt reach here');
     });
-    console.log('edgeOpen3');
     return def.promise();
 };
 
@@ -763,7 +743,7 @@ Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
      names = {},
      cmd = '',
      outList = _.map(
-         _.where(options.paramList, {out: true}),
+         _.filter(options.paramList, {out: true}),
          function (p) {
              names[p.name] = '@@par' + i;
              i += 1;
@@ -787,7 +767,7 @@ Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
     if (outList && options.skipSelect!==true) {
         cmd += ';SELECT ' +
             _.map(
-                _.where(options.paramList, {out: true}),
+                _.filter(options.paramList, {out: true}),
                 function (p) {
                     return names[p.name] + ' AS ' + p.name;
                 }
@@ -813,14 +793,13 @@ Connection.prototype.getSqlCallSPWithNamedParams  = function(options){
 Connection.prototype.callSPWithNamedParams = function (options) {
     var spDef = Deferred(),
         cmd = this.getSqlCallSPWithNamedParams(options);
-
     //noinspection JSUnresolvedFunction
     this.queryBatch(cmd, options.raw)
         .progress(function (result) {
             spDef.notify(result);
         })
         .done(function (result) {
-            if (_.any(options.paramList,{out:true})) {
+            if (_.some(options.paramList,{out:true})) {
                 //An object is needed for output row
                 var allVar = options.raw ? simpleObjectify(result[0].meta, result[0].rows) : result[0];
                 _.each(_.keys(allVar), function (k) {

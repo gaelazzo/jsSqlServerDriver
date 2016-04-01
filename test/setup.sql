@@ -1,3 +1,5 @@
+
+
 IF EXISTS(select * from sysobjects where id = object_id(N'[dbo].[customer]') and OBJECTPROPERTY(id, N'IsUserTable') = 1)
 BEGIN
  drop table [dbo].[customer]
