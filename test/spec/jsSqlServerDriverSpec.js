@@ -39,16 +39,14 @@ describe('sqlServerDriver ', function () {
                 useTrustedConnection: false,
                 user: dbConfig.user,
                 pwd: dbConfig.pwd,
-                database: dbConfig.dbName,
-                sqlModule: './sqlServerDriver'
+                database: dbConfig.dbName
             },
             bad: {
                 server: dbConfig.server,
                 useTrustedConnection: false,
                 user: dbConfig.user,
                 pwd: dbConfig.pwd + 'AA',
-                database: dbConfig.dbName,
-                sqlModule: './sqlServerDriver'
+                database: dbConfig.dbName
             }
         };
 
@@ -66,7 +64,10 @@ describe('sqlServerDriver ', function () {
         sqlConn = getConnection('good');
         sqlConn.open().done(function () {
             done();
-        });
+        }).fail(function (err) {
+            console.log(err);
+            done();
+        })
     }, 30000);
 
     afterEach(function () {
@@ -219,7 +220,7 @@ describe('sqlServerDriver ', function () {
 
         it('notify should be called from queryRaw when multiple result got', function (done) {
             var progressCalled;
-            sqlConn.queryBatch('select * from customer; select * from seller')
+            sqlConn.queryBatch('select top 10 * from customer; select top 5 * from seller')
                 .progress(function (result) {
                     expect(result).toBeDefined();
                     progressCalled = true;
@@ -228,7 +229,7 @@ describe('sqlServerDriver ', function () {
                     expect(err).toBeUndefined();
                     done();
                 })
-                .done(function () {
+                .done(function (result) {
                     expect(progressCalled).toBeTruthy();
                     done();
                 });
@@ -377,7 +378,7 @@ describe('sqlServerDriver ', function () {
          replace(@mess,'a','z') as newmess,   @defparam*2 as newparam
          END
          */
-        xit('callSPWithNamedParams should have success', function (done) {
+        it('callSPWithNamedParams should have success', function (done) {
             sqlConn.callSPWithNamedParams({
                     spName: 'testSP2',
                     paramList: [
@@ -411,7 +412,7 @@ describe('sqlServerDriver ', function () {
                 });
         });
 
-        xit('callSPWithNamedParams should have success - param order does not matter', function (done) {
+        it('callSPWithNamedParams should have success - param order does not matter', function (done) {
             sqlConn.callSPWithNamedParams({
                     spName: 'testSP2',
                     paramList: [
@@ -457,7 +458,7 @@ describe('sqlServerDriver ', function () {
          END
 
          */
-        xit('callSPWithNamedParams with output params should have success', function (done) {
+        it('callSPWithNamedParams with output params should have success', function (done) {
             var table;
             sqlConn.callSPWithNamedParams({
                     spName: 'testSP1',
@@ -508,13 +509,12 @@ describe('sqlServerDriver ', function () {
             sqlConn.queryLines(
                 'select top 10 * from customer; select top 20 * from seller; select top 2 * from customerkind', true)
                 .progress(function (r) {
-                    //console.log('GOT:'+JSON.stringify(r))
                     expect(r).toBeDefined();
                     if (r.meta) {
                         nResp += 1;
                     }
                 })
-                .done(function () {
+                .done(function (result) {
                     expect(nResp).toBe(3);
                     done();
                 })

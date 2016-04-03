@@ -421,8 +421,11 @@ Connection.prototype.edgeClose = function () {
 Connection.prototype.queryLines = function (query, raw) {
     var def = Deferred(),
         lastMeta,
-        objMaker,
         callback = function (data, resCallBack) {
+            if (data.resolve){
+                def.resolve();
+                return;
+            }
             if (data.rows) {
                 if (raw) {
                     def.notify({row: data.rows[0]});
@@ -438,13 +441,12 @@ Connection.prototype.queryLines = function (query, raw) {
             _.assign({source: query, callback: callback, packetSize: 1},
                 this.getDbConn()));
     edgeQuery({}, function (error, result) {
-        var i;
         if (error) {
             def.reject(error +' running '+query);
             return;
         }
         if (result.length === 0) {
-            def.resolve();
+            //def.resolve();
             return;
         }
         def.reject('shouldnt reach here - running '+query);
@@ -556,7 +558,7 @@ Connection.prototype.beginTransaction = function (isolationLevel) {
         return Deferred().reject("Cannot beginTransaction on a closed connection").promise();
     }
     if (this.transAnnidationLevel > 0) {
-        this.transAnnidationLevel -= 1;
+        this.transAnnidationLevel += 1;
         return Deferred().resolve().promise();
     }
     return this.setTransactionIsolationLevel(isolationLevel)
@@ -585,6 +587,9 @@ Connection.prototype.commit = function () {
         this.transAnnidationLevel -= 1;
         return Deferred().resolve().promise();
     }
+    if (this.transAnnidationLevel===0){
+        return Deferred().reject("Trting to commit but no transaction has been open").promise();
+    }
     if (this.transError) {
         return this.rollBack();
     }
@@ -611,6 +616,10 @@ Connection.prototype.rollBack = function () {
         this.transError = true;
         return Deferred().resolve().promise();
     }
+    if (this.transAnnidationLevel===0){
+        return Deferred().reject("Trting to rollBack but no transaction has been open").promise();
+    }
+
     res = this.queryBatch('ROLLBACK TRAN;');
     res.done(function () {
         that.transAnnidationLevel = 0;
@@ -959,7 +968,7 @@ Connection.prototype.run = function(script){
         curr+= s;
         first=false;
     }
-    if (curr.trim()!=''){
+    if (curr.trim()!==''){
         blocks.push(curr);
     }
 
@@ -968,7 +977,7 @@ Connection.prototype.run = function(script){
 
 
     function loopScript(){
-        if (index==blocks.length){
+        if (index===blocks.length){
             def.resolve();
         }
         else {
@@ -979,7 +988,7 @@ Connection.prototype.run = function(script){
                 })
                 .fail(function(err){
                     def.reject(err);
-                })
+                });
         }
     }
 
