@@ -482,7 +482,11 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
         lastMeta,
         currentSet = -1,
         table,
-        callback = function (data, resCallBack) {
+        callback = function (data) {
+            if(data.resolve){
+                def.resolve();
+                return;
+            }
             if (data.meta) {
                 currentSet += 1;
             }
@@ -496,16 +500,21 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
                     def.notify({rows: simpleObjectify(lastMeta, data.rows), set: currentSet});
                 }
             }
-        },
-        edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, callback: callback, packetSize: packetSize},
-            this.getDbConn()));
-    edgeQuery({}, function (error, result) {
-        var i;
-        if (error) {
-            def.reject(error+' running '+query);
-            return;
-        }
-        def.resolve();
+        };
+    var that = this;
+    process.nextTick(function() {
+        console.log('nextTick');
+        var edgeQuery = edge.func(that.sqlCompiler, _.assign({source: query, callback: callback, packetSize: packetSize},
+            that.getDbConn()));
+
+        edgeQuery({}, function (error) {
+            if (error) {
+                def.reject(error + ' running ' + query);
+                return;
+            }
+            //console.log('resolving '+query);
+            //def.resolve();
+        });
     });
     return def.promise();
 };
