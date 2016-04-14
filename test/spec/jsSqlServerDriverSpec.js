@@ -218,22 +218,47 @@ describe('sqlServerDriver ', function () {
                 });
         });
 
-        it('notify should be called from queryRaw when multiple result got', function (done) {
-            var progressCalled;
-            sqlConn.queryBatch('select top 10 * from customer; select top 5 * from seller')
-                .progress(function (result) {
-                    expect(result).toBeDefined();
-                    progressCalled = true;
-                })
-                .fail(function (err) {
-                    expect(err).toBeUndefined();
-                    done();
-                })
-                .done(function (result) {
-                    expect(progressCalled).toBeTruthy();
-                    done();
-                });
+        it('notify should be called from queryRaw when multiple result got (two select)', function (done) {
+            var progressCalled, nResult = 0;
+            sqlConn.queryBatch('select top 5 * from customer ; select top 10 * from seller; ')
+            .progress(function (result) {
+                expect(result).toBeDefined();
+                expect(result.length).toBe(5);
+                nResult += 1;
+                progressCalled = true;
+            })
+            .fail(function (err) {
+                expect(err).toBeUndefined();
+                done();
+            })
+            .done(function (result) {
+                expect(result.length).toBe(10);
+                expect(nResult).toBe(1);
+                expect(progressCalled).toBeTruthy();
+                done();
+            });
         });
+
+        it('notify should be called from queryRaw when multiple result got (three select)', function (done) {
+            var len            = [];
+            sqlConn.queryBatch('select top 1 * from seller;select top 3 * from seller;select top 5 * from customer;'+
+                'select top 10 * from seller;select top  2 * from customer;')
+            .progress(function (result) {
+                len.push(result.length)
+                return true;
+            })
+            .fail(function (err) {
+                expect(err).toBeUndefined();
+                done();
+            })
+            .done(function (result) {
+                len.push(result.length)
+                expect(len).toEqual([1,3, 5, 10, 2]);
+                done();
+            });
+        });
+        
+        
     },30000);
 
 

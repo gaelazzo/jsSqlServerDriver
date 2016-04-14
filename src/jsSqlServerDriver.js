@@ -328,24 +328,26 @@ Connection.prototype.open = function () {
 Connection.prototype.queryBatch = function (query, raw) {
     var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query}, this.getDbConn())),
         def = Deferred();
-    edgeQuery({}, function (error, result) {
-        if (error) {
-            def.reject(error+' running '+query);
-            return;
-        }
-        var i;
-        for (i = 0; i < result.length - 1; i++) {
-            if (raw) {
-                def.notify(result[i]);
-            } else {
-                def.notify(simpleObjectify(result[i].meta, result[i].rows));
+    process.nextTick(function() {
+        edgeQuery({}, function (error, result) {
+            if (error) {
+                def.reject(error + ' running ' + query);
+                return;
             }
-        }
-        if (raw) {
-            def.resolve(result[i]);
-        } else {
-            def.resolve(simpleObjectify(result[i].meta, result[i].rows));
-        }
+            var i;
+            for (i = 0; i < result.length - 1; i++) {
+                if (raw) {
+                    def.notify(result[i]);
+                } else {
+                    def.notify(simpleObjectify(result[i].meta, result[i].rows));
+                }
+            }
+            if (raw) {
+                def.resolve(result[i]);
+            } else {
+                def.resolve(simpleObjectify(result[i].meta, result[i].rows));
+            }
+        });
     });
     return def.promise();
 };
@@ -393,7 +395,8 @@ Connection.prototype.edgeClose = function () {
             {
                 handler: that.edgeHandler,
                 source: 'close',
-                cmd: 'close'
+                cmd: 'close',
+                driver:'sqlServer'
             });
     edgeClose({}, function (error, result) {
         if (error) {
