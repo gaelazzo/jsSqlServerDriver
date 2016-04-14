@@ -503,7 +503,6 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
         };
     var that = this;
     process.nextTick(function() {
-        console.log('nextTick');
         var edgeQuery = edge.func(that.sqlCompiler, _.assign({source: query, callback: callback, packetSize: packetSize},
             that.getDbConn()));
 
