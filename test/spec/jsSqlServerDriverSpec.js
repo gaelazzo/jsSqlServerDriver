@@ -257,12 +257,10 @@ describe('sqlServerDriver ', function () {
                 done();
             });
         });
-        
-        
     },30000);
 
 
-    describe('transactions', function () {
+    describe("transactions", function () {
 
 
         it('set transaction isolation level should call queryBatch', function (done) {

@@ -7,7 +7,7 @@
 var Deferred = require("JQDeferred");
 var _ = require('lodash');
 var formatter = require('jsSqlServerFormatter');
-var edge = require('edge');
+var edge = require('edge-js');
 
 /**
  * Interface to Microsoft Sql Server
@@ -133,7 +133,7 @@ function Connection(options) {
      * @type {object}
      */
     this.opt = _.clone(options);
-    this.sqlCompiler = this.opt.sqlCompiler || 'sql-maxpower';
+    this.sqlCompiler = this.opt.sqlCompiler || 'db';
     this.edgeHandler = null;
     /**
      * Indicates the open/closed state of the underlying connection
