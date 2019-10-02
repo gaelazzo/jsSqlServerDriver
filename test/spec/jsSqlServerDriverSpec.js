@@ -19,7 +19,18 @@ var fs = require("fs");
 //PUT THE  FILENAME OF YOUR FILE HERE:
 var configName = 'D:/gitrepo/jsSqlServerDriver/test/db.json';
 
-var dbConfig = JSON.parse(fs.readFileSync(configName).toString());
+var dbConfig;
+if (process.env.TRAVIS){
+    dbConfig = { "server": "127.0.0.1",
+        "dbName": "test",
+        "user": "sa",
+        "pwd": "YourStrong!Passw0rd"
+    };
+}
+else {
+    dbConfig = JSON.parse(fs.readFileSync(configName).toString());
+}
+
 
 var sqlServerDriver = require('../../src/jsSqlServerDriver'),
     IsolationLevel = {
