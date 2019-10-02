@@ -353,45 +353,7 @@ Connection.prototype.edgeClose = function () {
  * @returns {*}
  */
 Connection.prototype.queryPackets = function (query, raw, packSize) {
-    var def = Deferred(),
-        packetSize = packSize || 0,
-        lastMeta,
-        currentSet = -1,
-        table,
-        callback = function (data) {
-            if(data.resolve){
-                def.resolve();
-                return;
-            }
-            if (data.meta) {
-                currentSet += 1;
-            }
-            data.set = currentSet;
-            if (raw) {
-                def.notify(data);
-            } else {
-                if (data.meta) {
-                    lastMeta = data.meta;
-                } else {
-                    def.notify({rows: simpleObjectify(lastMeta, data.rows), set: currentSet});
-                }
-            }
-        };
-    var that = this;
-    process.nextTick(function() {
-        var edgeQuery = edge.func(that.sqlCompiler, _.assign({source: query, callback: callback, packetSize: packetSize},
-            that.getDbConn()));
-
-        edgeQuery({}, function (error) {
-            if (error) {
-                def.reject(error + ' running ' + query);
-                return;
-            }
-            //console.log('resolving '+query);
-            //def.resolve();
-        });
-    });
-    return def.promise();
+   return this.edgeConnection.queryPackets(query,raw,packSize);
 };
 
 
