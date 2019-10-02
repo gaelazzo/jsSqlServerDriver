@@ -8,6 +8,7 @@ var Deferred = require("JQDeferred");
 var _ = require('lodash');
 var formatter = require('jsSqlServerFormatter');
 var edge = require('edge-js');
+var EdgeConnection  = require("edge-sql").EdgeConnection;
 
 /**
  * Interface to Microsoft Sql Server
@@ -29,49 +30,10 @@ var mapIsolationLevels = {
     'SERIALIZABLE': 'SERIALIZABLE'
 };
 
-/**
- * simplified objectifier having an array of column names for first argument
- * @private
- * @param {Array} colNames
- * @param {Array} rows
- * @returns {Array}
- */
-function simpleObjectify(colNames, rows) {
-    var colLength = colNames.length,
-        rowLength = rows.length,
-        result = [],
-        rowIndex = rowLength,
-        colIndex,
-        value,
-        row;
-    while (--rowIndex >= 0) {
-        value = {};
-        row = rows[rowIndex];
-        colIndex = colLength;
-        while (--colIndex >= 0) {
-            value[colNames[colIndex]] = row[colIndex];
-        }
-        result[rowIndex] = value;
-    }
-    return result;
-}
 
 
-/**
- * transforms row data into plain objects
- * @method simpleObjectifier
- * @private
- * @param {string[]} colNames
- * @param {object[]}  row
- * @returns {object}
- */
-function simpleObjectifier(colNames, row) {
-    var obj = {};
-    _.each(colNames, function (value, index) {
-        obj[value] = row[index];
-    });
-    return obj;
-}
+
+
 
 /*jslint forin: false */
 
@@ -183,6 +145,12 @@ function Connection(options) {
             //"WorkStation ID =" + Environment.MachineName.ToUpper() +
         "Pooling=false;" +
         "Connection Timeout=600;";
+
+    /**
+     *
+     * @type {EdgeConnection}
+     */
+    this.edgeConnection = new EdgeConnection(this.adoString,'sqlServer');
 }
 
 Connection.prototype = {
@@ -249,19 +217,6 @@ Connection.prototype.setTransactionIsolationLevel = function (isolationLevel) {
     return res.promise();
 };
 
-/**
- * @private
- * Evaluates parameter to connect to database depending on the open/closed state of the connection.
- * If a connection is open, the handle of the open connection is used. Otherwise, a connectionString is provided.
- * @returns {*}
- */
-Connection.prototype.getDbConn = function () {
-    if (this.edgeHandler !== null) {
-        return {handler: this.edgeHandler};
-    } else {
-        return {connectionString: this.adoString};
-    }
-};
 
 /**
  * Check login/password, returns true if successful, false if user/password does not match
@@ -296,7 +251,7 @@ Connection.prototype.open = function () {
     if (this.isOpen) {
         return connDef.resolve(this).promise();
     }
-    this.edgeOpen()
+    this.edgeConnection.open()
         .done(function () {
             that.isOpen = true;
             if (that.schema === that.defaultSchema) {
@@ -309,7 +264,7 @@ Connection.prototype.open = function () {
                 })
                 .fail(function (err) {
                     that.close();
-                    connDef.reject(err);
+                    connDef.reject('schema fail' + err);
                 });
         })
         .fail(function (err) {
@@ -318,39 +273,6 @@ Connection.prototype.open = function () {
     return connDef.promise();
 };
 
-/**
- * Executes a sql command and returns all sets of results. Each Results is given via a notify or resolve
- * @method queryBatch
- * @param {string} query
- * @param {boolean} [raw] if true, data are left in raw state and will be objectified by the client
- * @returns {Deferred}  a sequence of {[array of plain objects]} or {meta:[column names],rows:[arrays of raw data]}
- */
-Connection.prototype.queryBatch = function (query, raw) {
-    var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query}, this.getDbConn())),
-        def = Deferred();
-    process.nextTick(function() {
-        edgeQuery({}, function (error, result) {
-            if (error) {
-                def.reject(error + ' running ' + query);
-                return;
-            }
-            var i;
-            for (i = 0; i < result.length - 1; i++) {
-                if (raw) {
-                    def.notify(result[i]);
-                } else {
-                    def.notify(simpleObjectify(result[i].meta, result[i].rows));
-                }
-            }
-            if (raw) {
-                def.resolve(result[i]);
-            } else {
-                def.resolve(simpleObjectify(result[i].meta, result[i].rows));
-            }
-        });
-    });
-    return def.promise();
-};
 
 /**
  * Opens the phisical connection
@@ -410,52 +332,6 @@ Connection.prototype.edgeClose = function () {
 };
 
 
-/**
- * Gets a table and returns each SINGLE row by notification. Could eventually return more than a table indeed
- * For each table read emits a {meta:[column descriptors]} notification, and for each row of data emits a
- *   if raw= false: {row:object read from db}
- *   if raw= true: {row: [array of values read from db]}
-
- * @method queryLines
- * @param {string} query
- * @param {boolean} [raw=false]
- * @returns {*}
- */
-Connection.prototype.queryLines = function (query, raw) {
-    var def = Deferred(),
-        lastMeta,
-        callback = function (data, resCallBack) {
-            if (data.resolve){
-                def.resolve();
-                return;
-            }
-            if (data.rows) {
-                if (raw) {
-                    def.notify({row: data.rows[0]});
-                } else {
-                    def.notify({row: simpleObjectifier(lastMeta, data.rows[0])});
-                }
-            } else {
-                lastMeta = data.meta;
-                def.notify(data);
-            }
-        },
-        edgeQuery = edge.func(this.sqlCompiler,
-            _.assign({source: query, callback: callback, packetSize: 1},
-                this.getDbConn()));
-    edgeQuery({}, function (error, result) {
-        if (error) {
-            def.reject(error +' running '+query);
-            return;
-        }
-        if (result.length === 0) {
-            //def.resolve();
-            return;
-        }
-        def.reject('shouldnt reach here - running '+query);
-    });
-    return def.promise();
-};
 
 
 /**
@@ -519,26 +395,6 @@ Connection.prototype.queryPackets = function (query, raw, packSize) {
 };
 
 
-/**
- * Executes a series of sql update/insert/delete commands
- * @method updateBatch
- * @param {string} query
- * @returns {*}
- */
-Connection.prototype.updateBatch = function (query) {
-    var edgeQuery = edge.func(this.sqlCompiler, _.assign({source: query, cmd: 'nonquery'},
-            this.getDbConn())),
-        def = Deferred();
-    edgeQuery({}, function (error, result) {
-        if (error) {
-            def.reject(error);
-            return;
-        }
-        def.resolve(result);
-    });
-    return def.promise();
-};
-
 
 /**
  * Closes the underlying connection
@@ -549,7 +405,7 @@ Connection.prototype.close = function () {
     var def = Deferred(),
         that = this;
     if (this.edgeHandler !== null) {
-        return this.edgeClose();
+        return this.edgeConnection.close();
     } else {
         that.isOpen = false;
         def.resolve();
@@ -916,6 +772,33 @@ Connection.prototype.appendCommands = function (cmd) {
     return cmd.join(';');
 };
 
+
+/**
+ * Gets a table and returns each SINGLE row by notification. Could eventually return more than a table indeed
+ * For each table read emits a {meta:[column descriptors]} notification, and for each row of data emits a
+ *   if raw= false: {row:object read from db}
+ *   if raw= true: {row: [array of values read from db]}
+
+ * @method queryLines
+ * @param {string} query
+ * @param {boolean} [raw=false]
+ * @returns {*}
+ */
+Connection.prototype.queryLines = function (query, raw) {
+    return this.edgeConnection.queryLines(query,raw);
+}
+
+
+/**
+ * Executes a sql command and returns all sets of results. Each Results is given via a notify or resolve
+ * @method queryBatch
+ * @param {string} query
+ * @param {boolean} [raw] if true, data are left in raw state and will be objectified by the client
+ * @returns {defer}  a sequence of {[array of plain objects]} or {meta:[column names],rows:[arrays of raw data]}
+ */
+Connection.prototype.queryBatch = function (query, raw) {
+    return this.edgeConnection.queryBatch(query,raw);
+}
 /**
  * Returns a command that should return a number if last write operation did not have success
  * @private
@@ -956,57 +839,7 @@ Connection.prototype.getFormatter = function () {
  * @returns {*}
  */
 Connection.prototype.run = function(script){
-    var os = require('os');
-    //noinspection JSUnresolvedVariable
-    var lines = script.split(os.EOL);
-    var blocks = [];
-    var curr= '';
-    var first=true;
-    var that=this;
-
-    for (var i=0; i<lines.length;i++){
-        var s = lines[i];
-        if (s.trim().toUpperCase()==='GO'){
-            blocks.push(curr);
-            curr='';
-            first=true;
-            continue;
-        }
-        if(!first){
-            //noinspection JSUnresolvedVariable
-            curr+= os.EOL;
-        }
-        curr+= s;
-        first=false;
-    }
-    if (curr.trim()!==''){
-        blocks.push(curr);
-    }
-
-    var def= Deferred();
-    var index= 0;
-
-
-    function loopScript(){
-        if (index===blocks.length){
-            def.resolve();
-        }
-        else {
-            that.updateBatch(blocks[index])
-                .done(function(){
-                    index+=1;
-                    loopScript();
-                })
-                .fail(function(err){
-                    def.reject(err);
-                });
-        }
-    }
-
-
-    loopScript();
-
-    return def.promise();
+    return this.edgeConnection.run(script);
 }
 module.exports = {
     'Connection': Connection

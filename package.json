@@ -1,7 +1,7 @@
 {
   "name": "jsSqlServerDriver",
   "version": "1.0.1",
-  "description": "Javascrit Driver for Microsoft Sql Server Database",
+  "description": "Javascript Driver for Microsoft Sql Server",
   "main": "src/jsSqlServerDriver.js",
   "scripts": {
     "test": "grunt test"
@@ -20,9 +20,9 @@
     "grunt-contrib-watch": "^1.1.0",
     "grunt-contrib-yuidoc": "1.0.0",
     "grunt-jasmine-node": "git+https://github.com/gaelazzo/grunt-jasmine-node.git",
+    "jasmine-collection-matchers": "*",
     "jasmine-core": "^2.99.1",
     "jasmine-node": "2.0.0-beta4",
-    "jasmine-collection-matchers": "*",
     "load-grunt-tasks": "^3.5.2",
     "time-grunt": "^1.4.0"
   },
