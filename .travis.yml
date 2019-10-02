@@ -6,7 +6,14 @@ env:
   - CXX=g++-4.8
 mono:
   - latest
-install: npm install
+
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
 
 before_script:
   - sudo docker run --name=mssql-server-linux-latest -e 'ACCEPT_EULA=Y' -e 'MSSQL_SA_PASSWORD=YourStrong!Passw0rd' -p 1433:1433 -d microsoft/mssql-server-linux:2017-latest
@@ -14,4 +21,13 @@ before_script:
   - sudo docker exec -it mssql-server-linux-latest /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -i sqlserver.sql
 
 
-install: npm install
+install:
+    - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+    - sudo sh -c "echo 'deb http://download.mono-project.com/repo/debian wheezy main' >> /etc/apt/sources.list.d/mono-xamarin.list"
+    - sudo sh -c "echo 'deb http://download.mono-project.com/repo/debian wheezy-libtiff-compat main' >> /etc/apt/sources.list.d/mono-xamarin.list"
+    - sudo apt-get update
+    - echo "deb http://download.mono-project.com/repo/debian wheezy-apache24-compat main" | sudo tee -a /etc/apt/sources.list.d/mono-xamarin.list
+    - sudo apt-get install mono-devel
+    - npm install -g grunt-cli
+    - npm install edge
+    - npm install
