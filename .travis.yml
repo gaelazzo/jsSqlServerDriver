@@ -4,6 +4,8 @@ node_js:
 dist:   xenial
 env:
   - CXX=g++-4.8
+mono:
+  - latest
 install: npm install
 
 before_script:
