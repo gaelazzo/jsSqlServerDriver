@@ -6,8 +6,6 @@ env:
   - CXX=g++-4.8
 mono:
   - latest
-
-
 addons:
   apt:
     sources:
@@ -16,9 +14,9 @@ addons:
       - g++-4.8
 
 before_script:
-  - sudo docker run --name=mssql-server-linux-latest -e 'ACCEPT_EULA=Y' -e 'MSSQL_SA_PASSWORD=YourStrong!Passw0rd' -p 1433:1433 -d microsoft/mssql-server-linux:2017-latest
-  - sudo docker cp sqlserver.sql mssql-server-linux-latest:sqlserver.sql
-  - sudo docker exec -it mssql-server-linux-latest /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -i sqlserver.sql
+ # - sudo docker run --name=mssql-server-linux-latest -e 'ACCEPT_EULA=Y' -e 'MSSQL_SA_PASSWORD=YourStrong!Passw0rd' -p 1433:1433 -d microsoft/mssql-server-linux:2017-latest
+ # - sudo docker cp sqlserver.sql mssql-server-linux-latest:sqlserver.sql
+ # - sudo docker exec -it mssql-server-linux-latest /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'YourStrong!Passw0rd' -i sqlserver.sql
 
 
 install:
