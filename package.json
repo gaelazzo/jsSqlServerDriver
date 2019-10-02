@@ -13,7 +13,7 @@
     "edge-js": "git://github.com/agracio/edge-js.git",
     "edge-sql": "git://github.com/gaelazzo/edge-sql",
     "jsDataQuery": "git://github.com/gaelazzo/jsDataQuery.git",
-    "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git",
+    "jsSqlServerFormatter": "git://github.com/gaelazzo/jsSqlServerFormatter.git"
   },
   "devDependencies": {
     "grunt": "~1.0.4",
