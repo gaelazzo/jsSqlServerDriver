@@ -501,6 +501,16 @@ Connection.prototype.getSelectCount = function (options) {
 };
 
 /**
+ * Executes a series of sql update/insert/delete commands
+ * @method updateBatch
+ * @param {string} query
+ * @returns {*}
+ */
+Connection.prototype.updateBatch = function (query) {
+    return this.edgeConnection.updateBatch(query);
+}
+
+/**
  * Get the string representing a delete command
  * @method getDeleteCommand
  * @param {object} options
