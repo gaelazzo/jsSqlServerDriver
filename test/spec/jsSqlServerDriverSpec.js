@@ -5,6 +5,7 @@ var $dq = require('jsDataQuery');
 var _ = require('lodash');
 var fs = require("fs");
 
+
 /**
  * *****************************************************************************************
  * VERY IMPORTANT VERY IMPORTANT VERY IMPORTANT VERY IMPORTANT VERY IMPORTANT VERY IMPORTANT
@@ -76,9 +77,9 @@ describe('sqlServerDriver ', function () {
         sqlConn.open().done(function () {
             done();
         }).fail(function (err) {
-            console.log(err);
+            console.log('Error failing '+err);
             done();
-        })
+        });
     }, 30000);
 
     afterEach(function () {
