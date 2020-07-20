@@ -7,7 +7,7 @@
     "test": "grunt test"
   },
   "dependencies": {
-    "lodash": "4.17.15",
+    "lodash": "4.17.19",
     "JQDeferred": "^2.1.0",
     "edge-db": "git://github.com/gaelazzo/edge-db.git",
     "edge-js": "git://github.com/agracio/edge-js.git",
