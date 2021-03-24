@@ -6,7 +6,7 @@
  */
 var Deferred = require("JQDeferred");
 var _ = require('lodash');
-var formatter = require('jsSqlServerFormatter');
+var formatter = require('jsSqlServerFormatter').jsSqlServerFormatter;
 var edge = require('edge-js');
 var EdgeConnection  = require("edge-sql").EdgeConnection;
 
@@ -522,7 +522,7 @@ Connection.prototype.updateBatch = function (query) {
 Connection.prototype.getDeleteCommand = function (options) {
     var cmd = 'DELETE FROM ' + options.tableName;
     if (options.filter) {
-        cmd += ' WHERE ' + formatter.conditionToSql(options.filter, options.environment);
+        cmd += ' WHERE ' + formatter.toSql(options.filter, options.environment);
     } else {
         cmd += ' this command is invalid';
     }
